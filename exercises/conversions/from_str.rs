@@ -31,7 +31,6 @@ enum ParsePersonError {
     ParseInt(ParseIntError),
 }
 
-// I AM NOT DONE
 
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
@@ -52,6 +51,52 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        // 方式 1 ：
+        let parts = s.split(',').collect::<Vec<&str>>();
+        match parts.len() {
+            1 if parts[0].is_empty() => Err(ParsePersonError::Empty), 
+            2 => {
+                match (parts[0].is_empty(), parts[1].parse::<usize>().is_err()) {
+                    // 返回的 Err() 中表达式中没有” _ 及 | "的用法！
+                    // 注意 #[cfg(test)] 模块" _ 及 | "也是在 match! 中用于 匹配结果  
+                    // (true, true) => Err(ParsePersonError::NoName | ParsePersonError::ParseInt(_)),
+                    
+                    (true, _) => Err(ParsePersonError::NoName),
+                    (_, true) => match parts[1].parse::<usize>() {
+                                    // 注意：Err(e) 中的 Err 是用于匹配 parse 解析错误中的 Err，并非是局部定义的 type Err = ParsePersonError
+                                    // 而用于返回的 Err(ParsePersonError::(ParseInt(e)) 中的 Err，才是局部定义的 type Err = ParsePersonError
+                                    Err(e) => Err(ParsePersonError::ParseInt(e)),
+                                    _ => panic!("can't go to this"),
+                                 },
+                    _ => Ok(Person { name: parts[0].to_string(), age: parts[1].parse::<usize>().unwrap() })                    
+                }
+            },
+            _ => Err(ParsePersonError::BadLen),
+
+        }
+
+        /*// 方式 2：
+        if s.is_empty() {
+            return Err(ParsePersonError::Empty);
+        }
+
+        let parts: Vec<&str> = s.split(',').collect();
+
+        if parts.len() != 2 {
+            return Err(ParsePersonError::BadLen);
+        }
+
+        let name = parts[0].to_string();
+        let age = parts[1]
+            .parse::<usize>()
+            .map_err(ParsePersonError::ParseInt)?;
+
+        if name.is_empty() {
+            return Err(ParsePersonError::NoName);
+        }
+
+        Ok(Person { name, age }) */
+
     }
 }
 

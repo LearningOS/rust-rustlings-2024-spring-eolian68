@@ -27,7 +27,6 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
 
 // Your task is to complete this implementation and return an Ok result of inner
 // type Color. You need to create an implementation for a tuple of three
@@ -41,6 +40,10 @@ enum IntoColorError {
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+       match tuple {
+          (0..=255, 0..=255, 0..=255) => Ok(Color{ red: tuple.0 as u8, green: tuple.1 as u8, blue: tuple.2 as u8 }),
+          _ => Err(IntoColorError::IntConversion),                                  
+       }
     }
 }
 
@@ -48,6 +51,23 @@ impl TryFrom<(i16, i16, i16)> for Color {
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        // 不能使用以下两种形式：因为有歧义
+        //if 0..=255.contains(&arr[0]) && 0..=255.contains(&arr[1]) && 0..=255.contains(&arr[2]) {
+        //if 0..=255.contains(&arr[0]) && {0..=255.contains(&arr[1])} && {0..=255.contains(&arr[2])} {
+        
+        // 可用以下两种方式 或者先 let range = 0..=255; 再好
+        //if (0..=255).contains(&arr[0]) && (0..=255).contains(&arr[1]) && (0..=255).contains(&arr[2]) {
+        //if {0..=255}.contains(&arr[0]) && {0..=255}.contains(&arr[1]) && {0..=255}.contains(&arr[2]) {
+        let range = 0..=255;
+        if range.contains(&arr[0]) && range.contains(&arr[1]) && range.contains(&arr[2]) {
+            Ok(Color {red: arr[0] as u8, green: arr[1] as u8, blue: arr[2] as u8 })
+        } else {
+            Err(IntoColorError::IntConversion)
+        }
+
+        // 技巧：通常只需实现相应的 切片 后，数组使用 切片方式调用即可
+        // Color::try_from(&arr[..])
+
     }
 }
 
@@ -55,6 +75,24 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        //let range = 0..=255;
+        //if slice.len() != 3 {
+            //Err(IntoColorError::BadLen)
+        //} else if range.contains(&slice[0]) && range.contains(&slice[1]) && range.contains(&slice[2]) {
+            //Ok(Color { red: slice[0] as u8, green: slice[1] as u8, blue: slice[2] as u8 })
+        //} else {
+            //Err(IntoColorError::IntConversion)
+        //}
+
+        // 另外实现方式：遇见 Result<T, E> 返回值可用 ？ 或者 mar_err, 需要多个重复迭代使用 迭代器
+        if slice.len() != 3 {
+           Err(IntoColorError::BadLen)?
+        } else if !slice.iter().all(|x|(0..=255).contains(x)) {
+           Err(IntoColorError::IntConversion)?
+        }
+
+        let v = slice.iter().map(|i|*i as u8).collect::<Vec<_>>();
+        Ok(Color { red: v[0], green: v[1], blue: v[2] })
     }
 }
 

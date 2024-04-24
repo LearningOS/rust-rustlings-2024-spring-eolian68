@@ -40,10 +40,26 @@ impl Default for Person {
 // If while parsing the age, something goes wrong, then return the default of
 // Person Otherwise, then return an instantiated Person object with the results
 
-// I AM NOT DONE
 
 impl From<&str> for Person {
     fn from(s: &str) -> Person {
+       let mut person = Person::default();
+       let mut parts = s.splitn(2, ',');
+
+       if let Some(name) = parts.next() {
+           if !name.is_empty() {
+                if let Some(age) = parts.next() {
+                    if let Ok(age) = age.parse::<usize>() {
+                         person = Person { name: name.to_string(), age };
+                    }
+                }
+           }
+       }
+
+       // 若头文件位置添加" #![feature(let_chains)] "则可用 连用 如下形式
+       //if let Some(name) = parts.next() && let Some(age) = parts.next() {}
+
+       person
     }
 }
 
