@@ -3,10 +3,30 @@
 	This problem requires you to implement a sorting algorithm
 	you can use bubble sorting, insertion sorting, heap sorting, etc.
 */
-// I AM NOT DONE
+fn quick<T: PartialOrd + std::clone::Clone >(array: &mut [T], l: usize, r: usize) {
+    if l >= r { return; }
 
-fn sort<T>(array: &mut [T]){
+    let mut i = l;  let mut j = r;
+    let t = array[l].clone();
+
+    while i < j {
+        while array[j] >= array[l] && i < j{
+            j -= 1;
+        }
+        while array[i] <= array[l] && i < j{
+            i += 1;
+        }
+        array.swap(j, i);
+    }
+    array.swap(i, l);
+
+    quick(array, l, i);
+    quick(array, i + 1, r);
+}
+
+fn sort<T: PartialOrd + std::clone::Clone>(array: &mut [T]){
 	//TODO
+    quick(array, 0 as usize , array.len()-1 as usize);
 }
 #[cfg(test)]
 mod tests {

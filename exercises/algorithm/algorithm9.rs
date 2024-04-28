@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -38,6 +37,34 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.count += 1;
+        println!("{}",self.count);
+        self.items.push(value);
+        self.float(self.count);
+    }
+    fn sink(&mut self, id: usize) {
+        let mut id = id;
+        while self.children_present(id) {
+            let swap_id =
+                if self.right_child_idx(id) <= self.count &&
+                    !(self.comparator)(&self.items[self.left_child_idx(id)], &self.items[self.right_child_idx(id)]) {
+                    self.right_child_idx(id)
+                } else {self.left_child_idx(id)};
+
+            if (self.comparator)(&self.items[swap_id], &self.items[id]) {self.items.swap(swap_id, id);}
+            else {break;}
+            id = swap_id;
+        }
+    }
+
+    fn float(&mut self, id: usize) {
+        let mut id = id;
+        while id != 1 {
+            let parent = self.parent_idx(id);
+            if !(self.comparator)(&self.items[parent], &self.items[id]) {self.items.swap(parent, id);}
+            else { break; }
+            id = parent;
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +85,7 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+        self.count
     }
 }
 
@@ -85,7 +112,18 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+
+        use std::mem::replace;
+        let mut ret = None;
+        if !self.is_empty() {
+            let tail = replace(&mut self.items[self.count], T::default());
+            self.items.pop();
+            ret = Some(replace(&mut self.items[1], tail));
+            self.count -=1;
+            self.sink(1);
+        }
+
+        ret
     }
 }
 
